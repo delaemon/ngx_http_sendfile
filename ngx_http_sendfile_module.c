@@ -2,7 +2,7 @@
 #include <ngx_core.h>
 #include <ngx_http.h>
 #include <nginx.h>
-#include <memcached.h>
+#include "/usr/include/libmemcached/memcached.h"
 
 static char* ngx_http_sendfile(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static ngx_int_t ngx_http_sendfile_init(ngx_conf_t *cf);
@@ -64,7 +64,7 @@ static ngx_int_t ngx_http_sendfile_handler(ngx_http_request_t *r)
 {
     ngx_http_sendfile_loc_conf_t *sfcf;
     u_char *p;
-    struct memcache *mc;
+    struct memcached_st *mc;
     char *mc_res, *path;
     int len;
     ngx_str_t uri;
@@ -83,9 +83,9 @@ static ngx_int_t ngx_http_sendfile_handler(ngx_http_request_t *r)
     p++;
     if (len <= 0) return NGX_DECLINED;
 
-    mc = mc_new();
-    mc_server_add(mc, "127.0.0.1", "11211");
-    mc_res = mc_aget(mc, (char*)p, len);
+    mc = memcached_create();
+    memcached_server_add(mc, "127.0.0.1", 11211);
+    mc_res = memcached_get(mc, (char*)p, len);
     path = mc_res + 4;
 
     uri.len = ngx_http_sendfile_root.len + strlen(path);
